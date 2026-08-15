@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  issues:
+    types: [opened, edited, reopened, closed]
   workflow_dispatch:
 
 permissions:
@@ -16,10 +18,16 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'post')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Generate posts from issues
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/issues_to_posts.py
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
