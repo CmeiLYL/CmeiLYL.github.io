@@ -14,6 +14,11 @@ import glob
 
 POSTS_DIR = "source/_posts"
 
+# 分类标签白名单：命中任意一个即作为文章分类，其余标签全部作为文章标签。
+# 与标签添加顺序无关；不命中任何分类标签时默认"随笔"。
+# 新增分类时在此追加（如 "教程", "求职"）。
+CATEGORIES = {"项目", "随笔", "教程", "笔记", "技术", "生活", "求职"}
+
 
 def main():
     out = subprocess.run(
@@ -28,8 +33,9 @@ def main():
 
     for i in issues:
         labels = [l["name"] for l in i["labels"]]
-        category = labels[0] if labels else "随笔"
-        tags = labels[1:] if len(labels) > 1 else []
+        # 分类：labels 中第一个命中白名单的；标签：所有非分类标签
+        category = next((c for c in labels if c in CATEGORIES), "随笔")
+        tags = [t for t in labels if t not in CATEGORIES]
         title = i["title"].strip().replace('"', '\\"')
         created = i["createdAt"].replace("T", " ").replace("Z", "")[:19]
 
