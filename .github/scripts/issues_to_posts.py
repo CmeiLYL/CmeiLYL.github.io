@@ -51,6 +51,13 @@ def main():
         # 转义 Issue 引用 #数字（避免渲染成标题），行首的 # 标题不动
         body = re.sub(r"(?<!^)(?<!\w)#(\d+)", r"\\#\1", body, flags=re.M)
 
+        # 首页摘要截断：尊重手动 <!-- more -->；否则自动取前 2 段（按空行分段）
+        if "<!-- more -->" not in body:
+            paras = re.split(r"\n\s*\n", body)
+            if len(paras) > 2:
+                body = ("\n\n".join(paras[:2]) + "\n\n<!-- more -->\n\n"
+                        + "\n\n".join(paras[2:]))
+
         with open(os.path.join(POSTS_DIR, f"issue-{i['number']}.md"),
                   "w", encoding="utf-8") as f:
             f.write("\n".join(fm) + "\n\n" + body + "\n")
